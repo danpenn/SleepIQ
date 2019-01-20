@@ -146,7 +146,7 @@ func (s SleepIQ) ControlBedPosition(bedID string, side string, position int) (Be
 	}
 
 	if position < 1 || position > 6 {
-		return response, errors.New("parameter 'position' must be between 1 and 6 inclusive. Use 'Position' constants")
+		return response, errors.New("parameter 'position' must be between 1 and 6 inclusive")
 	}
 
 	// Bail if there is not an active logged-in session
