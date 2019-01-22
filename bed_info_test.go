@@ -7,10 +7,19 @@ import (
 	"testing"
 )
 
-func TestBedsSuccess(t *testing.T) {
-	sleepiq := New()
+func TestBedSuccess(t *testing.T) {
+	siq := New()
 
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
+	// Test Beds() - Not Logged In
+	_, err := siq.Beds()
+	if err != nil {
+		if strings.Contains(err.Error(), "user is not logged-in") {
+			return
+		}
+	}
+	t.Error("user shouldn't have been logged in")
+
+	response, err := siq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
 	if err != nil {
 		t.Error("login failed - expected success", err)
 		return
@@ -21,7 +30,20 @@ func TestBedsSuccess(t *testing.T) {
 		return
 	}
 
-	beds, err := sleepiq.Beds()
+	// Get the beds so we can retrieve the bedID
+	beds, err := siq.Beds()
+	if err != nil {
+		t.Errorf("could not get beds - %s", err)
+		return
+	}
+
+	if len(beds.Beds) == 0 {
+		t.Error("no beds were found in the account")
+		return
+	}
+
+	// Test Beds()
+	beds, err = siq.Beds()
 	if err != nil {
 		t.Errorf("could not get beds - %s", err)
 		return
@@ -30,373 +52,117 @@ func TestBedsSuccess(t *testing.T) {
 	for _, bed := range beds.Beds {
 		fmt.Printf("%s (%s)\n", bed.Size, bed.Name)
 	}
-}
 
-func TestBedsUserNotLoggedIn(t *testing.T) {
-	sleepiq := New()
-
-	_, err := sleepiq.Beds()
-	if err != nil {
-		if strings.Contains(err.Error(), "user is not logged-in") {
-			return
-		}
-	}
-	t.Error("user shouldn't have been logged in")
-}
-
-func TestBedPrivacyModeSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
-	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
-	}
-
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
-	}
-
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
-	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
-	}
-
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
-	}
-
-	_, err = sleepiq.BedPrivacyMode(beds.Beds[0].BedID)
+	// Test BedPrivacyMode()
+	privacyMode, err := siq.BedPrivacyMode(beds.Beds[0].BedID)
 	if err != nil {
 		t.Errorf("could not get bed pause mode - %s", err)
 		return
 	}
-}
 
-func TestBedFamilyStatusSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
-	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
+	if privacyMode.PauseMode != "off" && privacyMode.PauseMode != "on" {
+		t.Error("Privacy mode was neither off nor on")
 	}
 
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
-	}
-
-	_, err = sleepiq.BedFamilyStatus()
+	// Test BedFamilyStatus
+	familyStatus, err := siq.BedFamilyStatus()
 	if err != nil {
 		t.Errorf("could not get bed family status - %s", err)
 		return
 	}
-}
 
-func TestBedDetailedStatusSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
-	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
+	if familyStatus.Beds[0].Status < 0 {
+		t.Errorf("bed family status is invalid")
 	}
 
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
-	}
-
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
-	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
-	}
-
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
-	}
-
-	_, err = sleepiq.BedDetailedStatus(beds.Beds[0].BedID)
+	// Test BedDetailedStatus()
+	detailedStatus, err := siq.BedDetailedStatus(beds.Beds[0].BedID)
 	if err != nil {
 		t.Errorf("could not get bed detailed status - %s", err)
 		return
 	}
-}
 
-func TestBedNodesSuccess(t *testing.T) {
-	sleepiq := New()
+	if detailedStatus.BedID == "" {
+		t.Errorf("could not get a valid detailed status")
+	}
 
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
+	// Test BedNodes()
+	bedNodes, err := siq.BedNodes(beds.Beds[0].BedID)
 	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
+		t.Errorf("could not get bed nodes status - %s", err)
 	}
 
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
+	if bedNodes.BedID == "" {
+		t.Errorf("could not get a valid bed nodes info")
 	}
 
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
+	// Test BedResponsiveAir()
+	responsiveAir, err := siq.BedResponsiveAir(beds.Beds[0].BedID)
 	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
+		t.Errorf("could not get bed responsive air status - %s", err)
 	}
 
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
+	if responsiveAir.InBedTimeout == 0 {
+		t.Errorf("could not get bed responsive air status data - %s", err)
 	}
 
-	_, err = sleepiq.BedNodes(beds.Beds[0].BedID)
-	if err != nil {
-		t.Errorf("could not get bed detailed status - %s", err)
-		return
-	}
-}
-
-func TestBedResponsiveAirSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
-	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
-	}
-
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
-	}
-
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
-	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
-	}
-
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
-	}
-
-	_, err = sleepiq.BedResponsiveAir(beds.Beds[0].BedID)
-	if err != nil {
-		t.Errorf("could not get bed detailed status - %s", err)
-		return
-	}
-}
-
-func TestBedFootWarmerStatusSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
-	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
-	}
-
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
-	}
-
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
-	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
-	}
-
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
-	}
-
-	_, err = sleepiq.BedFootWarmerStatus(beds.Beds[0].BedID)
+	// Test BedFootWarmerStatus()
+	_, err = siq.BedFootWarmerStatus(beds.Beds[0].BedID)
 	if err != nil {
 		t.Errorf("could not get bed foot warmer status - %s", err)
-		return
 	}
-}
 
-func TestBedSystemStatusSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
+	// Test BedSystemStatus()
+	bedSystemStatus, err := siq.BedSystemStatus(beds.Beds[0].BedID)
 	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
+		t.Errorf("could not get bed system status - %s", err)
 	}
 
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
+	if bedSystemStatus.BoardHWRevisionCode == 0 {
+		t.Errorf("bed system status is invalid")
 	}
 
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
+	// Test BedPinchStatus()
+	_, err = siq.BedPinchStatus(beds.Beds[0].BedID)
 	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
+		t.Errorf("could not get bed pinch status - %s", err)
 	}
 
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
+	// Test BedLightStatus
+	_, err = siq.BedLightStatus(beds.Beds[0].BedID)
+	if err != nil {
+		t.Errorf("could not get bed light status - %s", err)
 	}
 
-	_, err = sleepiq.BedSystemStatus(beds.Beds[0].BedID)
+	// Test BedFoundationStatus()
+	foundationStatus, err := siq.BedFoundationStatus(beds.Beds[0].BedID)
 	if err != nil {
 		t.Errorf("could not get bed detailed status - %s", err)
-		return
-	}
-}
-
-func TestBedSystemPinchSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
-	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
 	}
 
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
+	if foundationStatus.CurrentPositionPresetRight == "" {
+		t.Errorf("foundation status is invalid")
 	}
 
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
-	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
-	}
-
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
-	}
-
-	_, err = sleepiq.BedPinchStatus(beds.Beds[0].BedID)
-	if err != nil {
-		t.Errorf("could not get bed detailed status - %s", err)
-		return
-	}
-}
-
-func TestBedLightStatusSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
-	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
-	}
-
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
-	}
-
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
-	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
-	}
-
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
-	}
-
-	_, err = sleepiq.BedLightStatus(beds.Beds[0].BedID)
-	if err != nil {
-		t.Errorf("could not get bed detailed status - %s", err)
-		return
-	}
-}
-
-func TestBedFoundationStatusSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
-	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
-	}
-
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
-	}
-
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
-	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
-	}
-
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
-	}
-
-	_, err = sleepiq.BedFoundationStatus(beds.Beds[0].BedID)
-	if err != nil {
-		t.Errorf("could not get bed detailed status - %s", err)
-		return
-	}
-}
-
-func TestUnderbedOutletSystemSuccess(t *testing.T) {
-	sleepiq := New()
-
-	response, err := sleepiq.Login(os.Getenv("sleepiq_username"), os.Getenv("sleepiq_password"))
-	if err != nil {
-		t.Error("login failed - expected success", err)
-		return
-	}
-
-	if response.Error.Code > 0 {
-		t.Errorf("login failed - Error #%d: %s", response.Error.Code, response.Error.Message)
-		return
-	}
-
-	// Get the beds so we can retrieve the bedID
-	beds, err := sleepiq.Beds()
-	if err != nil {
-		t.Errorf("could not get beds - %s", err)
-		return
-	}
-
-	if len(beds.Beds) == 0 {
-		t.Error("no beds were found in the account")
-		return
-	}
-
-	_, err = sleepiq.BedLightingOutletStatus(beds.Beds[0].BedID, 3)
+	// Test BedLightingOutletStatus
+	outletStatus, err := siq.BedLightingOutletStatus(beds.Beds[0].BedID, 3)
 	if err != nil {
 		t.Errorf("could not get bed light outlet status - %s", err)
 		return
 	}
 
-	_, err = sleepiq.BedLightingSystemStatus(beds.Beds[0].BedID)
+	if outletStatus.BedID == "" {
+		t.Errorf("bed light outlet status is invalid")
+	}
+
+	// Test BedLightingSystemStatus()
+	outletSystem, err := siq.BedLightingSystemStatus(beds.Beds[0].BedID)
 	if err != nil {
 		t.Errorf("could not get bed light system status - %s", err)
 		return
+	}
+
+	if outletSystem.BoardHWRevisionCode == 0 {
+		t.Errorf("bed light outlet system status is invalid")
 	}
 }
