@@ -12,34 +12,37 @@ import (
 // SLEEPER DETAILS
 // ============================================================================
 
-// SleeperDetails contains personal information about a sleeper (person)
+// SleeperDetails contains personal information about all sleepers
 type SleeperDetails struct {
-	Sleepers []struct {
-		FirstName      string      `json:"firstName"`
-		Active         bool        `json:"active"`
-		EmailValidated bool        `json:"emailValidated"`
-		IsChild        bool        `json:"isChild"`
-		BedID          string      `json:"bedId"`
-		BirthYear      string      `json:"birthYear"`
-		ZipCode        string      `json:"zipCode"`
-		Timezone       string      `json:"timezone"`
-		IsMale         bool        `json:"isMale"`
-		Weight         int         `json:"weight"`
-		Duration       interface{} `json:"duration"`
-		SleeperID      string      `json:"sleeperId"`
-		Height         int         `json:"height"`
-		LicenseVersion int         `json:"licenseVersion"`
-		Username       string      `json:"username"`
-		BirthMonth     int         `json:"birthMonth"`
-		SleepGoal      int         `json:"sleepGoal"`
-		IsAccountOwner bool        `json:"isAccountOwner"`
-		AccountID      string      `json:"accountId"`
-		Email          string      `json:"email"`
-		Avatar         string      `json:"avatar"`
-		LastLogin      string      `json:"lastLogin"`
-		Side           int         `json:"side"`
-	} `json:"sleepers"`
-	Error ServiceError `json:"Error"`
+	Sleepers []Sleeper    `json:"sleepers"`
+	Error    ServiceError `json:"Error"`
+}
+
+// Sleeper contains personal information about a sleeper (person)
+type Sleeper struct {
+	FirstName      string      `json:"firstName"`
+	Active         bool        `json:"active"`
+	EmailValidated bool        `json:"emailValidated"`
+	IsChild        bool        `json:"isChild"`
+	BedID          string      `json:"bedId"`
+	BirthYear      string      `json:"birthYear"`
+	ZipCode        string      `json:"zipCode"`
+	Timezone       string      `json:"timezone"`
+	IsMale         bool        `json:"isMale"`
+	Weight         int         `json:"weight"`
+	Duration       interface{} `json:"duration"`
+	SleeperID      string      `json:"sleeperId"`
+	Height         int         `json:"height"`
+	LicenseVersion int         `json:"licenseVersion"`
+	Username       string      `json:"username"`
+	BirthMonth     int         `json:"birthMonth"`
+	SleepGoal      int         `json:"sleepGoal"`
+	IsAccountOwner bool        `json:"isAccountOwner"`
+	AccountID      string      `json:"accountId"`
+	Email          string      `json:"email"`
+	Avatar         string      `json:"avatar"`
+	LastLogin      string      `json:"lastLogin"`
+	Side           int         `json:"side"`
 }
 
 // Sleepers retrieves detailed information about all sleepers (people)
@@ -79,45 +82,48 @@ func (s SleepIQ) Sleepers() (SleeperDetails, error) {
 
 // SleeperActivityDetails describes details about a persons sleep quality.
 type SleeperActivityDetails struct {
-	Sleepers []struct {
-		SleeperID             string `json:"sleeperId"`
-		Message               string `json:"message"`
-		Tip                   string `json:"tip"`
-		AvgHeartRate          int    `json:"avgHeartRate"`
-		AvgRespirationRate    int    `json:"avgRespirationRate"`
-		TotalSleepSessionTime int    `json:"totalSleepSessionTime"`
-		InBed                 int    `json:"inBed"`
-		OutOfBed              int    `json:"outOfBed"`
-		Restful               int    `json:"restful"`
-		Restless              int    `json:"restless"`
-		AvgSleepIQ            int    `json:"avgSleepIQ"`
-		SleepData             []struct {
-			Tip      string `json:"tip"`
-			Message  string `json:"message"`
-			Date     string `json:"date"`
-			Sessions []struct {
-				StartDate             string `json:"startDate"`
-				Longest               bool   `json:"longest"`
-				SleepIQCalculating    bool   `json:"sleepIQCalculating"`
-				OriginalStartDate     string `json:"originalStartDate"`
-				Restful               int    `json:"restful"`
-				OriginalEndDate       string `json:"originalEndDate"`
-				SleepNumber           int    `json:"sleepNumber"`
-				TotalSleepSessionTime int    `json:"totalSleepSessionTime"`
-				AvgHeartRate          int    `json:"avgHeartRate"`
-				Restless              int    `json:"restless"`
-				AvgRespirationRate    int    `json:"avgRespirationRate"`
-				IsFinalized           bool   `json:"isFinalized"`
-				SleepQuotient         int    `json:"sleepQuotient"`
-				EndDate               string `json:"endDate"`
-				OutOfBed              int    `json:"outOfBed"`
-				InBed                 int    `json:"inBed"`
-			} `json:"sessions"`
-			GoalEntry interface{}   `json:"goalEntry"`
-			Tags      []interface{} `json:"tags"`
-		} `json:"sleepData"`
-	} `json:"sleepers"`
-	Error ServiceError `json:"Error"`
+	Sleepers []SleeperActivity `json:"sleepers"`
+	Error    ServiceError      `json:"Error"`
+}
+
+// SleeperActivity describes sleep details for a specific person
+type SleeperActivity struct {
+	SleeperID             string `json:"sleeperId"`
+	Message               string `json:"message"`
+	Tip                   string `json:"tip"`
+	AvgHeartRate          int    `json:"avgHeartRate"`
+	AvgRespirationRate    int    `json:"avgRespirationRate"`
+	TotalSleepSessionTime int    `json:"totalSleepSessionTime"`
+	InBed                 int    `json:"inBed"`
+	OutOfBed              int    `json:"outOfBed"`
+	Restful               int    `json:"restful"`
+	Restless              int    `json:"restless"`
+	AvgSleepIQ            int    `json:"avgSleepIQ"`
+	SleepData             []struct {
+		Tip      string `json:"tip"`
+		Message  string `json:"message"`
+		Date     string `json:"date"`
+		Sessions []struct {
+			StartDate             string `json:"startDate"`
+			Longest               bool   `json:"longest"`
+			SleepIQCalculating    bool   `json:"sleepIQCalculating"`
+			OriginalStartDate     string `json:"originalStartDate"`
+			Restful               int    `json:"restful"`
+			OriginalEndDate       string `json:"originalEndDate"`
+			SleepNumber           int    `json:"sleepNumber"`
+			TotalSleepSessionTime int    `json:"totalSleepSessionTime"`
+			AvgHeartRate          int    `json:"avgHeartRate"`
+			Restless              int    `json:"restless"`
+			AvgRespirationRate    int    `json:"avgRespirationRate"`
+			IsFinalized           bool   `json:"isFinalized"`
+			SleepQuotient         int    `json:"sleepQuotient"`
+			EndDate               string `json:"endDate"`
+			OutOfBed              int    `json:"outOfBed"`
+			InBed                 int    `json:"inBed"`
+		} `json:"sessions"`
+		GoalEntry interface{}   `json:"goalEntry"`
+		Tags      []interface{} `json:"tags"`
+	} `json:"sleepData"`
 }
 
 // SleepActivity obtains detailed information about a persons sleep

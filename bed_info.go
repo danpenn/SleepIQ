@@ -17,37 +17,46 @@ const (
 	BedTypeEasternKing = 3
 )
 
+// Sides of the bed
+const (
+	BedSideLeft  = 0
+	BedSideRight = 1
+)
+
 // ============================================================================
 // BEDS
 // ============================================================================
 
-// BedsInfo describes the response returned from the service
+// BedsInfo describes the beds returned from the service
 type BedsInfo struct {
-	Beds []struct {
-		RegistrationDate    time.Time   `json:"registrationDate"`
-		SleeperRightID      string      `json:"sleeperRightId"`
-		Base                interface{} `json:"base"`
-		ReturnRequestStatus int         `json:"returnRequestStatus"`
-		Size                string      `json:"size"`
-		Name                string      `json:"name"`
-		Serial              string      `json:"serial"`
-		IsKidsBed           bool        `json:"isKidsBed"`
-		DualSleep           bool        `json:"dualSleep"`
-		BedID               string      `json:"bedId"`
-		Status              int         `json:"status"`
-		SleeperLeftID       string      `json:"sleeperLeftId"`
-		Version             string      `json:"version"`
-		AccountID           string      `json:"accountId"`
-		Timezone            string      `json:"timezone"`
-		Generation          string      `json:"generation"`
-		Model               string      `json:"model"`
-		PurchaseDate        time.Time   `json:"purchaseDate"`
-		MacAddress          string      `json:"macAddress"`
-		Sku                 string      `json:"sku"`
-		Zipcode             string      `json:"zipcode"`
-		Reference           string      `json:"reference"`
-	} `json:"beds"`
+	Beds  []Bed        `json:"beds"`
 	Error ServiceError `json:"Error"`
+}
+
+// Bed describes the details of a bed
+type Bed struct {
+	RegistrationDate    time.Time   `json:"registrationDate"`
+	SleeperRightID      string      `json:"sleeperRightId"`
+	Base                interface{} `json:"base"`
+	ReturnRequestStatus int         `json:"returnRequestStatus"`
+	Size                string      `json:"size"`
+	Name                string      `json:"name"`
+	Serial              string      `json:"serial"`
+	IsKidsBed           bool        `json:"isKidsBed"`
+	DualSleep           bool        `json:"dualSleep"`
+	BedID               string      `json:"bedId"`
+	Status              int         `json:"status"`
+	SleeperLeftID       string      `json:"sleeperLeftId"`
+	Version             string      `json:"version"`
+	AccountID           string      `json:"accountId"`
+	Timezone            string      `json:"timezone"`
+	Generation          string      `json:"generation"`
+	Model               string      `json:"model"`
+	PurchaseDate        time.Time   `json:"purchaseDate"`
+	MacAddress          string      `json:"macAddress"`
+	Sku                 string      `json:"sku"`
+	Zipcode             string      `json:"zipcode"`
+	Reference           string      `json:"reference"`
 }
 
 // Beds returns properties about all beds associated with the account
@@ -401,14 +410,14 @@ func (s SleepIQ) BedFootWarmerStatus(bedID string) (FootWarmingStatus, error) {
 
 // BedSystemStatus describes the status of the bed computer board and lighting systems
 type BedSystemStatus struct {
-	FsBedType               int          `json:"fsBedType"`
-	FsBoardFaults           int          `json:"fsBoardFaults"`
-	FsBoardFeatures         int          `json:"fsBoardFeatures"`
-	FsBoardHWRevisionCode   int          `json:"fsBoardHWRevisionCode"`
-	FsBoardStatus           int          `json:"fsBoardStatus"`
-	FsLeftUnderbedLightPWM  int          `json:"fsLeftUnderbedLightPWM"`
-	FsRightUnderbedLightPWM int          `json:"fsRightUnderbedLightPWM"`
-	Error                   ServiceError `json:"Error"`
+	BedType               int          `json:"fsBedType"`
+	BoardFaults           int          `json:"fsBoardFaults"`
+	BoardFeatures         int          `json:"fsBoardFeatures"`
+	BoardHWRevisionCode   int          `json:"fsBoardHWRevisionCode"`
+	BoardStatus           int          `json:"fsBoardStatus"`
+	LeftUnderbedLightPWM  int          `json:"fsLeftUnderbedLightPWM"`
+	RightUnderbedLightPWM int          `json:"fsRightUnderbedLightPWM"`
+	Error                 ServiceError `json:"Error"`
 }
 
 // BedSystemStatus retrieves the board and lighting status of the bed
