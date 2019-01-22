@@ -128,13 +128,10 @@ type SleeperActivity struct {
 
 // SleepActivity obtains detailed information about a persons sleep
 // quality on a daily basis. Information is returned for a given date
-// as well as the length of time. The 'date' must be formatted as
-// 'YYYY-MM-DD' but aliases can also be specified. Date aliases
-// include: 'today' and 'yesterday'. The 'timeLength' supports the
+// as well as the length of time. The 'timeLength' supports the
 // following options: 'd1' (one day), 'w1' (one week) or 'm1'
-// (one year). Defaults for 'date' are "today" and for 'timeLength'
-// are 'd1'.
-func (s SleepIQ) SleepActivity(date string, timeLength string) (SleeperActivityDetails, error) {
+// (one year).
+func (s SleepIQ) SleepActivity(date time.Time, timeLength string) (SleeperActivityDetails, error) {
 	var response SleeperActivityDetails
 
 	// Bail if there is not an active logged-in session
@@ -144,7 +141,7 @@ func (s SleepIQ) SleepActivity(date string, timeLength string) (SleeperActivityD
 
 	// Make request
 	url := strings.Replace("https://prod-api.sleepiq.sleepnumber.com/rest/sleepData/?_k={{key}}&date={{date}}&interval={{interval}}", "{{key}}", s.loginKey, -1)
-	url = strings.Replace(url, "{{date}}", convertDateAlias(date), -1)
+	url = strings.Replace(url, "{{date}}", date.Format("2006-01-01"), -1)
 	url = strings.Replace(url, "{{interval}}", convertTimeLength(timeLength), -1)
 
 	responseBytes, err := httpGet(url, s.cookies, getHeaders())
@@ -263,12 +260,7 @@ type SleeperMonthlySummaryDetails struct {
 }
 
 // SleeperMonthlySummary contains a monthly summary by day for each sleeper.
-// The 'date' parameter should be in the format of 'YYYY-MM'. However, it
-// supports aliases in the form of 'this' (this month), 'last' (last month)
-// or specifing the month name (i.e., 'June'). When specifying the month
-// name, it will revert to the previous year if the month specified is in
-// the future for the current year.
-func (s SleepIQ) SleeperMonthlySummary(date string) (SleeperMonthlySummaryDetails, error) {
+func (s SleepIQ) SleeperMonthlySummary(date time.Time) (SleeperMonthlySummaryDetails, error) {
 	var response SleeperMonthlySummaryDetails
 
 	// Bail if there is not an active logged-in session
@@ -278,7 +270,7 @@ func (s SleepIQ) SleeperMonthlySummary(date string) (SleeperMonthlySummaryDetail
 
 	// Make request
 	url := strings.Replace("https://prod-api.sleepiq.sleepnumber.com/rest/sleepData/byMonth?startDate={{date}}&_k={{key}}", "{{key}}", s.loginKey, -1)
-	url = strings.Replace(url, "{{date}}", convertMonthlyDateAlias(date), -1)
+	url = strings.Replace(url, "{{date}}", date.Format("2006-01-02"), -1)
 
 	responseBytes, err := httpGet(url, s.cookies, getHeaders())
 	if err != nil {
