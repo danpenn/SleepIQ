@@ -32,7 +32,8 @@ func TestSleepersSuccess(t *testing.T) {
 	}
 
 	// Test SleepActivity() -- TODAY
-	activity, err := siq.SleepActivity("today", "")
+	now := time.Now()
+	activity, err := siq.SleepActivity(now, "")
 	if err != nil {
 		t.Errorf("could not get sleeper activity - %s", err)
 		return
@@ -44,45 +45,6 @@ func TestSleepersSuccess(t *testing.T) {
 
 	if len(activity.Sleepers[0].SleepData) == 0 {
 		t.Error("warning: no sleep data was available for the date test. Skipping test!")
-	}
-
-	// Validate date - date returned should be 'today'
-	today := convertDateAlias("today")
-	actualDate := activity.Sleepers[0].SleepData[0].Date
-	if actualDate != today {
-		t.Errorf("failed to get correct date for sleeper activity. Expected=%s, Actual=%s", today, actualDate)
-	}
-
-	// Validate date - days returned should be one days worth of data
-	if len(activity.Sleepers[0].SleepData) != 1 {
-		t.Errorf("failed to get correct date for sleeper activity. Expected=%d, Actual=%d", 1, len(activity.Sleepers[0].SleepData))
-	}
-
-	// Test SleepActivity() -- YESTERDAY
-	activity, err = siq.SleepActivity("yesterday", "W1")
-	if err != nil {
-		t.Errorf("could not get sleeper activity - %s", err)
-		return
-	}
-
-	if len(activity.Sleepers) == 0 {
-		t.Error("warning: no sleep data was available for the date test. Skipping test!")
-	}
-
-	if len(activity.Sleepers[0].SleepData) == 0 {
-		t.Error("warning: no sleep data was available for the date test. Skipping test!")
-	}
-
-	// Validate date - date returned should be 'yesterday'
-	today = convertDateAlias("yesterday")
-	actualDate = activity.Sleepers[0].SleepData[0].Date
-	if actualDate != today {
-		t.Errorf("failed to get correct date for sleeper activity. Expected=%s, Actual=%s", today, actualDate)
-	}
-
-	// Validate date - days returned should be one days worth of data
-	if len(activity.Sleepers[0].SleepData) != 7 {
-		t.Errorf("failed to get correct date for sleeper activity. Expected=%d, Actual=%d", 1, len(activity.Sleepers[0].SleepData))
 	}
 
 	// Test SleeperPreferences()
@@ -97,7 +59,7 @@ func TestSleepersSuccess(t *testing.T) {
 	}
 
 	// Test SleeperMonthlySummary
-	monthlySummary, err := siq.SleeperMonthlySummary("this") // current month
+	monthlySummary, err := siq.SleeperMonthlySummary(now) // current month
 	if err != nil {
 		t.Errorf("could not get sleeper monthly summary - %s", err)
 		return
@@ -105,17 +67,6 @@ func TestSleepersSuccess(t *testing.T) {
 
 	if monthlySummary.MonthSleepData.Date != convertMonthlyDateAlias("this") {
 		t.Errorf("failed to verify sleeper monthly summary date. Expect=%s, Actual=%s", convertMonthlyDateAlias("this"), monthlySummary.MonthSleepData.Date)
-	}
-
-	now := time.Now()
-	monthlySummary, err = siq.SleeperMonthlySummary(now.Format("January")) // current month name
-	if err != nil {
-		t.Errorf("could not get sleeper monthly summary - %s", err)
-		return
-	}
-
-	if monthlySummary.MonthSleepData.Date != convertMonthlyDateAlias(now.Format("January")) {
-		t.Errorf("failed to verify sleeper monthly summary date. Expect=%s, Actual=%s", convertMonthlyDateAlias(now.Format("January")), monthlySummary.MonthSleepData.Date)
 	}
 
 	// Test SleeperEditedSessions()
